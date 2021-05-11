@@ -42,7 +42,7 @@ class MusicSearchController extends ControllerBase {
    */
   public function musicSearch() {
     return [
-      '#markup' => $this->service->getSpotify(),
+      '#markup' => $this->service->getSpotify(), $this->service->getDiscogs()
     ];
   }
 }

@@ -1,5 +1,4 @@
 services:
   music_search.service:
     class: Drupal\music_search\MusicSearchService
-    tags:
-      - {name: tag_name}
+    arguments: ['@config.factory']
