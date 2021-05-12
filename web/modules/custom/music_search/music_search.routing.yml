@@ -5,10 +5,17 @@ music_search.music_search:
     _title: 'Search for music'
   requirements:
     _permission: 'access content'
+music_search.search_form:
+  path: '/music_search/form'
+  defaults:
+    _title: 'Search Form'
+    _form: '\Drupal\music_search\Form\MusicSearchForm'
+  requirements:
+    _permission: 'administer site configuration'
 music_search.music_form:
-  path: 'admin/config/music_search-configuration'
+  path: '/admin/config/music_search'
   defaults:
     _form: Drupal\music_search\Form\MusicSearchConfigurationForm
-    _title: 'Music Search configuration'
+    _title: 'Search Music'
   requirements:
     _permission: 'administer site configuration'

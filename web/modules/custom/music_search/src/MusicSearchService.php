@@ -4,6 +4,7 @@ namespace Drupal\music_search;
 
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\music_search\Form\MusicSearchForm;
 
 class MusicSearchService {
   use StringTranslationTrait;
@@ -18,13 +19,25 @@ class MusicSearchService {
   }
 
   public function getSpotify() {
-    $config = $this->configFactory->get('music_world.custom_music_search');
-    $music_search = $config->get('music_search');
-    if ($music_search !== '' && $music_search) {
-      return $music_search;
+    $config = $this->configFactory->get('music_world.config');
+    $music_search_config = $config->get('music_search');
+    if ($music_search_config && $music_search_config !== '') {
+      return $music_search_config;
     }
 
-    return $this->t("Here is your Spotify");
+//    $form['music_search'] = [
+//      '#type' => 'textfield',
+//      '#title' => 'Search',
+//      '#description' => $this->t('Type out what you want to search for...'),
+//      '#default_value' => $config->get('music_search'),
+//    ];
+//    $form['submit'] = [
+//      '#type' => 'submit',
+//      '#value' => t('Search')
+//    ];
+
+    return $this->t('I know nothing...');
+//    return $this->musicSearchForm;
   }
 
   public function getDiscogs() {
