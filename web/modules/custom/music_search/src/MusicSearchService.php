@@ -4,7 +4,7 @@ namespace Drupal\music_search;
 
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\music_search\Form\MusicSearchForm;
+//use Drupal\music_search\Form\MusicSearchForm;
 
 class MusicSearchService {
   use StringTranslationTrait;
@@ -13,6 +13,11 @@ class MusicSearchService {
    * @var \Drupal\Core\Config\ConfigFactoryInterface
    */
   protected $configFactory;
+
+//  /**
+//   * @var \Drupal\music_search\Form\MusicSearchForm
+//   */
+//  protected $musicSearchForm;
 
   public function __construct(ConfigFactoryInterface $configFactory) {
     $this->configFactory = $configFactory;
@@ -24,17 +29,6 @@ class MusicSearchService {
     if ($music_search_config && $music_search_config !== '') {
       return $music_search_config;
     }
-
-//    $form['music_search'] = [
-//      '#type' => 'textfield',
-//      '#title' => 'Search',
-//      '#description' => $this->t('Type out what you want to search for...'),
-//      '#default_value' => $config->get('music_search'),
-//    ];
-//    $form['submit'] = [
-//      '#type' => 'submit',
-//      '#value' => t('Search')
-//    ];
 
     return $this->t('I know nothing...');
 //    return $this->musicSearchForm;

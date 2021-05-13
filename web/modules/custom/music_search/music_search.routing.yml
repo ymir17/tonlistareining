@@ -5,13 +5,30 @@ music_search.music_search:
     _title: 'Search for music'
   requirements:
     _permission: 'access content'
+
 music_search.search_form:
   path: '/music_search/form'
   defaults:
     _title: 'Search Form'
     _form: '\Drupal\music_search\Form\MusicSearchForm'
   requirements:
-    _permission: 'administer site configuration'
+    _role: 'administrator+writer+editor'
+
+music_search.autocomplete:
+  path: '/music_search/autocomplete'
+  defaults:
+    _controller: '\Drupal\music_search\Controller\MusicSearchController::autocomplete'
+  requirements:
+    _role: 'administrator+writer+editor'
+
+music_search.edit_form:
+  path: '/music_search/edit'
+  defaults:
+    _title: 'Edit Music Form'
+    _form: '\Drupal\music_search\Form\EditMusicForm\{param}'
+  requirements:
+    _role: 'administrator+writer+editor'
+
 music_search.music_form:
   path: '/admin/config/music_search'
   defaults:

@@ -69,21 +69,10 @@ class MusicSearchController extends ControllerBase {
       ->fetchAll();
     foreach ($query as $row) {
       $matches[] = [
-        'value' => $row->nid,
-        'label' => $row->title
+        'value' => $row->title,
+        'label' => '['.$row->type.'] '.$row->title
       ];
     }
     return new JsonResponse($matches);
-//    if ($string) {
-//      $matches = [];
-//      $query = \Drupal::entityQuery('node')
-//        ->condition('status', 1)
-//        ->condition('title', '%'.db_like($string).'%', 'LIKE');
-//      $nids = $query->execute();
-//      $result = entity_load_multiple()
-//    }
-//    $db = \Drupal::database();
-//    $result = $db->select('artist', 'n')
-//      ->fields('n');
   }
 }
