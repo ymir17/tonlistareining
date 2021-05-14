@@ -7,7 +7,7 @@ use Drupal\Core\Form\FormInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\TempStore\PrivateTempStoreFactory;
-use Drupal\pathauto\MessengerInterface;
+use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\search\Form\SearchPageFormBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -36,19 +36,19 @@ class MusicSearchForm extends FormBase {
    *
    * @var \Drupal\Core\TempStore\PrivateTempStoreFactory
    */
-  protected $tempstoreFactory;
+  protected $tempStoreFactory;
 
   /**
    * Constructs a new MusicSearchForm object
    */
-  public function _construct(
+  public function __construct(
     MessengerInterface $messenger,
     LoggerChannelFactoryInterface $logger_factory,
     PrivateTempStoreFactory $tempStoreFactory
   ) {
     $this->messenger = $messenger;
     $this->loggerFactory = $logger_factory;
-    $this->tempstoreFactory = $tempStoreFactory;
+    $this->tempStoreFactory = $tempStoreFactory;
   }
 
   /**
@@ -83,6 +83,18 @@ class MusicSearchForm extends FormBase {
 //      '#default_value' => $config->get('music_search'),
     ];
 
+    $form['type'] = [
+      '#type' => 'select',
+      '#title' => $this->t('I\'m searching for '),
+      '#description' => $this->t('What is it that you\'re searching for?'),
+      '#options' => [
+        'musician' => $this->t('Musician'),
+        'record' => $this->t('Record'),
+        'song' => $this->t('Song'),
+      ],
+      '#default_value' => 'musician',
+    ];
+
     $form['actions'] = [
       '#type' => 'actions',
       'submit' => [
@@ -110,18 +122,18 @@ class MusicSearchForm extends FormBase {
     // 1. Set the $params array with the values of the form
     // to save those values in the store.
     $params['query'] = $form_state->getValue('query');
-//    $params['items'] = $form_state->getValue('items');
+    $params['type'] = $form_state->getValue('type');
     // 2. Create a PrivateTempStore object with the collection 'ex_form_values'.
-    $tempstore = $this->tempStoreFactory->get('music_search_form_values');  // TODO: Figure out what this is, giving problems!
+    $tempstore = $this->tempStoreFactory->get('music_search');  // TODO: Figure out what this is, giving problems!
     // 3. Store the $params array with the key 'params'.
     try {
       $tempstore->set('params', $params);
       // 4. Redirect to the simple controller.
-      $form_state->setRedirect('music_search.edit_form');
+      $form_state->setRedirect('music_search.discogs_lookup');
     }
     catch (\Exception $error) {
       // Store this error in the log.
-      $this->loggerFactory->get('ex_form_values')->alert(t('@err', ['@err' => $error]));
+      $this->loggerFactory->get('music_search')->alert(t('@err', ['@err' => $error]));
       // Show the user a message.
       $this->messenger->addWarning(t('Unable to proceed, please try again.'));
     }

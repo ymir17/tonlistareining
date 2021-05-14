@@ -1,7 +1,7 @@
 music_search.music_search:
   path: '/music_search'
   defaults:
-    _controller: Drupal\music_search\Controller\MusicSearchController::musicSearch
+    _controller: 'Drupal\music_search\Controller\MusicSearchController::musicSearch'
     _title: 'Search for music'
   requirements:
     _permission: 'access content'
@@ -9,7 +9,7 @@ music_search.music_search:
 music_search.search_form:
   path: '/music_search/form'
   defaults:
-    _title: 'Search Form'
+    _title: 'Search music'
     _form: '\Drupal\music_search\Form\MusicSearchForm'
   requirements:
     _role: 'administrator+writer+editor'
@@ -18,6 +18,20 @@ music_search.autocomplete:
   path: '/music_search/autocomplete'
   defaults:
     _controller: '\Drupal\music_search\Controller\MusicSearchController::autocomplete'
+  requirements:
+    _role: 'administrator+writer+editor'
+
+music_search.spotify_lookup:
+  path: '/music_search/lookup/spotify'
+  defaults:
+    _controller: 'Drupal\music_search\Controller\MusicSearchController::spotifyLookup'
+  requirements:
+    _role: 'administrator+writer+editor'
+
+music_search.discogs_lookup:
+  path: '/music_search/lookup/discogs'
+  defaults:
+    _controller: '\Drupal\music_search\Controller\MusicSearchController::discogsLookup'
   requirements:
     _role: 'administrator+writer+editor'
 
@@ -32,7 +46,7 @@ music_search.edit_form:
 music_search.music_form:
   path: '/admin/config/music_search'
   defaults:
-    _form: Drupal\music_search\Form\MusicSearchConfigurationForm
+    _form: '\Drupal\music_search\Form\MusicSearchConfigurationForm'
     _title: 'Search Music'
   requirements:
     _permission: 'administer site configuration'

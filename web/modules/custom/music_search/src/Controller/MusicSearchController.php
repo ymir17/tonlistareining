@@ -3,8 +3,11 @@
 namespace Drupal\music_search\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\TempStore\PrivateTempStoreFactory;
 use Drupal\music_search\MusicSearchService;
-use Drupal\C;
+//use Drupal\music_search\spotify_lookup\SpotifyLookupService;
+use Drupal\discogs_lookup\DiscogsLookupService;
+use Drupal\Core\Messenger\MessengerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,18 +18,55 @@ use Symfony\Component\HttpFoundation\Request;
  *    Some message in a render array
  */
 class MusicSearchController extends ControllerBase {
+
   /**
-   * The Music Search service.
+   * Tempstore service
+   *
+   * @var \Drupal\Core\TempStore\PrivateTempStoreFactory
+   */
+  protected $tempStoreFactory;
+
+  /**
+   * Messenger service
+   *
+   * @var \Drupal\Core\Messenger\MessengerInterface
+   */
+  protected $messenger;
+
+  /**
+   * Music Search service
+   *
    * @var MusicSearchService
    */
   protected $service;
 
+//  /**
+//   * Spotify Lookup service
+//   *
+//   * @var SpotifyLookupService
+//   */
+//  protected $spotifyLookup;
+
   /**
-   * MusicSearchController.php constructor.
-   * @param MusicSearchService $service
+   * Discogs Lookup service
+   *
+   * @var DiscogsLookupService
    */
-  public function __construct(MusicSearchService $service) {
+  protected $discogsLookup;
+
+  /**
+   * Inject services
+   */
+  public function __construct(PrivateTempStoreFactory $tempStoreFactory,
+                              MessengerInterface $messenger,
+                              MusicSearchService $service/*,
+                              SpotifyLookupService $spotifyLookup*/,
+                              DiscogsLookupService $discogsLookup) {
+    $this->tempStoreFactory = $tempStoreFactory;
+    $this->messenger = $messenger;
     $this->service = $service;
+//    $this->spotifyLookup = $spotifyLookup;
+    $this->discogsLookup = $discogsLookup;
   }
 
   /**
@@ -34,12 +74,17 @@ class MusicSearchController extends ControllerBase {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('music_search.service')
+      $container->get('tempstore.private'),
+//      $container->get('http_client'),
+      $container->get('messenger'),
+      $container->get('music_search.service'),
+      $container->get('music_search.discogs.service'),
     );
   }
 
   /**
    * Music Search
+   *
    * @return array
    *  some message
    */
@@ -74,5 +119,13 @@ class MusicSearchController extends ControllerBase {
       ];
     }
     return new JsonResponse($matches);
+  }
+
+  public function spotifyLookup() {
+    // TODO: Call spotifyLookupService
+  }
+
+  public function discogsLookup() {
+    return $this->discogsLookup->lookup();
   }
 }
