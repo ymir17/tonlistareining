@@ -40,12 +40,12 @@ class MusicSearchController extends ControllerBase {
    */
   protected $service;
 
-//  /**
-//   * Spotify Lookup service
-//   *
-//   * @var SpotifyLookupService
-//   */
-//  protected $spotifyLookup;
+  /**
+   * Spotify Lookup service
+   *
+   * @var SpotifyLookupService
+   */
+  protected $spotifyLookup;
 
   /**
    * Discogs Lookup service
@@ -59,13 +59,13 @@ class MusicSearchController extends ControllerBase {
    */
   public function __construct(PrivateTempStoreFactory $tempStoreFactory,
                               MessengerInterface $messenger,
-                              MusicSearchService $service/*,
-                              SpotifyLookupService $spotifyLookup*/,
+                              MusicSearchService $service,
+                              SpotifyLookupService $spotifyLookup,
                               DiscogsLookupService $discogsLookup) {
     $this->tempStoreFactory = $tempStoreFactory;
     $this->messenger = $messenger;
     $this->service = $service;
-//    $this->spotifyLookup = $spotifyLookup;
+    $this->spotifyLookup = $spotifyLookup;
     $this->discogsLookup = $discogsLookup;
   }
 
@@ -75,9 +75,9 @@ class MusicSearchController extends ControllerBase {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('tempstore.private'),
-//      $container->get('http_client'),
       $container->get('messenger'),
       $container->get('music_search.service'),
+      $container->get('music_search.spotify.service'),
       $container->get('music_search.discogs.service'),
     );
   }
@@ -126,6 +126,15 @@ class MusicSearchController extends ControllerBase {
   }
 
   public function discogsLookup() {
-    return $this->discogsLookup->lookup();
+    $json_array = $this->discogsLookup->lookup();
+//    $matches = [];
+//    foreach ($json_array['results'] as $obj) {
+//      $matches['id'] = $obj['id'];
+//      $matches['title'] = $obj['title'];
+//      $matches['images'] = [$obj['thumb'], $obj['cover_image']];
+//      $matches['type'] = $obj['type'];
+//      $matches['url'] = $obj['resource_url'];
+//    }
+    return $json_array;
   }
 }
