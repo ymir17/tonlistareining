@@ -5,7 +5,7 @@ namespace Drupal\music_search\Controller;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\TempStore\PrivateTempStoreFactory;
 use Drupal\music_search\MusicSearchService;
-//use Drupal\music_search\spotify_lookup\SpotifyLookupService;
+use Drupal\spotify_lookup\SpotifyLookupService;
 use Drupal\discogs_lookup\DiscogsLookupService;
 use Drupal\Core\Messenger\MessengerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;

@@ -1,4 +1,4 @@
 services:
   music_search.spotify.service:
-    class: Drupal\music_search\spotify_lookup\SpotifyLookupService
+    class: Drupal\spotify_lookup\SpotifyLookupService
     arguments: ['@messenger', '@logger.factory', '@tempstore.private']
