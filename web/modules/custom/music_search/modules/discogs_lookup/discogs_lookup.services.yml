@@ -1,4 +1,4 @@
 services:
   music_search.discogs.service:
     class: Drupal\discogs_lookup\DiscogsLookupService
-    arguments: ['@messenger', '@logger.factory', '@tempstore.private', '@http_client']
+    arguments: ['@messenger', '@logger.factory', '@tempstore.private']

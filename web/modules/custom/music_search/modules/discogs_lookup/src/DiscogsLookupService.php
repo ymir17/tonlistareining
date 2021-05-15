@@ -3,18 +3,16 @@
 namespace Drupal\discogs_lookup;
 
 //use Discogs\ClientFactory;
-use Drupal\Core\DependencyInjection\ContainerBuilder;
-use Drupal\Core\DependencyInjection\ServiceProviderBase;
 use GuzzleHttp\Client;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\TempStore\PrivateTempStoreFactory;
 use Drupal\Core\Messenger\MessengerInterface;
-use Drupal\Tests\Core\DependencyInjection\Compiler\ServiceClassDefault;
-use DrupalCodeGenerator\Command\Drupal_8\ServiceProvider;
-use GuzzleHttp\Exception\RequestException;
-use GuzzleHttp\Promise;
-use Psr\Http\Message\ResponseInterface;
+use Drupal\Component\Serialization\Json;
+use GuzzleHttp\Exception\GuzzleException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\Response;
+
+//use Symfony\Component\HttpFoundation\JsonResponse;
 
 class DiscogsLookupService {
 
@@ -40,23 +38,16 @@ class DiscogsLookupService {
   protected $tempstoreFactory;
 
   /**
-   * @var Client
-   */
-  private $client;
-
-  /**
    * Constructs a new MusicSearchForm object
    */
   public function __construct(
     MessengerInterface $messenger,
     LoggerChannelFactoryInterface $logger_factory,
-    PrivateTempStoreFactory $tempStoreFactory,
-    Client $client
+    PrivateTempStoreFactory $tempStoreFactory
   ) {
     $this->messenger = $messenger;
     $this->loggerFactory = $logger_factory;
     $this->tempstoreFactory = $tempStoreFactory;
-    $this->client = $client;
   }
 
   /**
@@ -66,8 +57,7 @@ class DiscogsLookupService {
     return new static(
       $container->get('messenger'),
       $container->get('logger.factory'),
-      $container->get('tempstore.private'),
-      $container->get('http_client')
+      $container->get('tempstore.private')
     );
   }
 
@@ -75,36 +65,32 @@ class DiscogsLookupService {
    * Calls the Discogs' server with given query and receives a response
    */
   public function lookup() {
-  $credentials = '&key=ZTTfWenqRIBJqcNkwnxR&secret=oKuGvfNImmewMWrSLTXIcctphUKWbFrB';
-//    $client = ClientFactory::factory([
-//      'defaults' => [
-//        'headers' => ['User-Agent' => 'music-search/0.1 +https://tonlistareining.ddev.site'],
-//        'query' => [
-//          'key' => 'ZTTfWenqRIBJqcNkwnxR',
-//          'secret' => 'oKuGvfNImmewMWrSLTXIcctphUKWbFrB',
-//        ],
-//      ],
-//    ]);
-
     $tempstore = $this->tempstoreFactory->get('music_search');
     $params = $tempstore->get('params');
     $query = $params['query'];
 
-//    $response = $client->search([
-//      'q' => $query
-//    ]);
+    $key = 'ZTTfWenqRIBJqcNkwnxR';
+    $secret = 'oKuGvfNImmewMWrSLTXIcctphUKWbFrB';
+//    $credentials = '&key='.key.'&secret='.$secret;
+    $uri = 'https://api.discogs.com';
+    $header = ['User-Agent' => 'music-search/0.1 +https://tonlistareining.ddev.site'];
 
-    $promise = $this->client->getAsync(
-      'https://api.discogs.com/database/search?q='.$query.$credentials,
-      ['headers' => ['User-Agent' => 'music-search/0.1 +https://tonlistareining.ddev.site']]);
-    return $promise->then(
-      function (ResponseInterface $res) {
-        return $res;
-      },
-      function (RequestException $e) {
-        echo $e->getMessage();
-        return $e;
-      }
+    $client = new Client(['base_uri' => $uri]);
+    $promise = $client->requestAsync(
+      'GET',
+      '/database/search', [
+        'query' => [
+          'q' => $query,
+          'key' => $key,
+          'secret' => $secret
+        ],
+      ]
     );
+
+    $response = $promise->wait();
+
+    var_dump($response);
+//    echo $response->getBody();
+    return Json::decode($response->getBody());
   }
 }
