@@ -11,9 +11,12 @@ use Drupal\Component\Serialization\Json;
 use GuzzleHttp\Exception\GuzzleException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Response;
-
 //use Symfony\Component\HttpFoundation\JsonResponse;
 
+/**
+ * Class DiscogsLookupService
+ * @package Drupal\discogs_lookup
+ */
 class DiscogsLookupService {
 
   /**
@@ -64,16 +67,15 @@ class DiscogsLookupService {
   /**
    * Calls the Discogs' server with given query and receives a response
    */
-  public function lookup() {
-    $tempstore = $this->tempstoreFactory->get('music_search');
-    $params = $tempstore->get('params');
-    $query = $params['query'];
+  public function lookup($query, $type = null) {
+//    $tempstore = $this->tempstoreFactory->get('music_search');
+//    $params = $tempstore->get('params');
+//    $query = $params['query'];
 
     $key = 'ZTTfWenqRIBJqcNkwnxR';
     $secret = 'oKuGvfNImmewMWrSLTXIcctphUKWbFrB';
-//    $credentials = '&key='.key.'&secret='.$secret;
     $uri = 'https://api.discogs.com';
-    $header = ['User-Agent' => 'music-search/0.1 +https://tonlistareining.ddev.site'];
+//    $header = ['User-Agent' => 'music-search/0.1 +https://tonlistareining.ddev.site'];
 
     $client = new Client(['base_uri' => $uri]);
     $promise = $client->requestAsync(
@@ -89,7 +91,7 @@ class DiscogsLookupService {
 
     $response = $promise->wait();
 
-    var_dump($response);
+//    var_dump($response);
 //    echo $response->getBody();
     return Json::decode($response->getBody());
   }

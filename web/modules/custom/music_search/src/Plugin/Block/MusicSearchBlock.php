@@ -4,6 +4,7 @@ namespace Drupal\music_search\Plugin\Block;
 
 use Drupal\Core\Block\BlockBase;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\music_search\Form\MusicSearchForm;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\music_search\MusicSearchService;
 
@@ -19,6 +20,11 @@ class MusicSearchBlock extends BlockBase implements ContainerFactoryPluginInterf
    * @var \Drupal\music_search\MusicSearchService
    */
   protected $music_search_service;
+
+  /**
+   * @var \Drupal\music_search\Form\MusicSearchForm
+   */
+  protected $musicSearchForm;
 
   /**
    * MusicSearchBlock constructor.
@@ -47,7 +53,7 @@ class MusicSearchBlock extends BlockBase implements ContainerFactoryPluginInterf
       $configuration,
       $plugin_id,
       $plugin_definition,
-      $container->get('music_search.service'),
+      $container->get('music_search.service')
     );
   }
 }

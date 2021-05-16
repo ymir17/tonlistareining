@@ -6,7 +6,8 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\TempStore\PrivateTempStoreFactory;
-use Drupal\pathauto\MessengerInterface;
+use Drupal\music_search\MusicSearchService;
+use Drupal\Core\Messenger\MessengerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -33,19 +34,26 @@ class EditMusicForm extends FormBase {
    *
    * @var \Drupal\Core\TempStore\PrivateTempStoreFactory
    */
-  protected $tempstoreFactory;
+  protected $tempStoreFactory;
+
+  /**
+   * @var \Drupal\music_search\MusicSearchService
+   */
+  protected $service;
 
   /**
    * Constructs a new MusicSearchForm object
    */
-  public function _construct(
+  public function __construct(
     MessengerInterface $messenger,
     LoggerChannelFactoryInterface $logger_factory,
-    PrivateTempStoreFactory $tempStoreFactory
+    PrivateTempStoreFactory $tempStoreFactory,
+    MusicSearchService $musicSearchService
   ) {
     $this->messenger = $messenger;
     $this->loggerFactory = $logger_factory;
-    $this->tempstoreFactory = $tempStoreFactory;
+    $this->tempStoreFactory = $tempStoreFactory;
+    $this->service = $musicSearchService;
   }
 
   /**
@@ -55,7 +63,8 @@ class EditMusicForm extends FormBase {
     return new static(
       $container->get('messenger'),
       $container->get('logger.factory'),
-      $container->get('tempstore.private')
+      $container->get('tempstore.private'),
+      $container->get('music_search.service')
     );
   }
 
@@ -63,23 +72,145 @@ class EditMusicForm extends FormBase {
    * {@inheritdoc}
    */
   public function getFormId() {
-    return 'music_search_form';
+    return 'music_search_edit_form';
+  }
+
+  /**
+   * Initiate search on both Discogs and Spotify and merges the result
+   * @returns array
+   */
+  private function initLookups($query, $type) {
+    $discogs_res = $this->service->getDiscogs($query, $type);
+//    $spotify_res = $this->service->getSpotify($query, $type);
+
+//    $res = array_merge_recursive($discogs_res, $spotify_res);
+    return $discogs_res;  // TODO: Change to:  return $res
+  }
+
+  private function getArtistForm($query) {
+    $form['title'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Title'),
+      '#default_value' => $query,
+    ];
+    $form['type'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Type'),
+      '#options' => [
+        'artist' => $this->t('Musician'),
+        'album' => $this->t('Record'),
+        'song' => $this->t('Song'),
+      ],
+      '#default_value' => 'artist',
+    ];
+    $form['table'] = [];
+    return $form;
+  }
+
+  private function getAlbumForm($query) {
+    $form['img'] = [
+      '#type' => 'image',
+      '#title' => 'Image',
+    ];
+    $form['title'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Title'),
+      '#default_value' => $query,
+    ];
+    $form['type'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Type'),
+      '#options' => [
+        'artist' => $this->t('Musician'),
+        'album' => $this->t('Record'),
+        'song' => $this->t('Song'),
+      ],
+      '#default_value' => 'album',
+    ];
+    $form['table'] = [];
+    return $form;
+  }
+
+  private function getSongForm($query) {
+    $form['title'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Title'),
+      '#default_value' => $query,
+    ];
+    $form['type'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Type'),
+      '#options' => [
+        'artist' => $this->t('Musician'),
+        'album' => $this->t('Record'),
+        'song' => $this->t('Song'),
+      ],
+      '#default_value' => 'song',
+    ];
+    $form['table'] = [];
+    return $form;
   }
 
   /**
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    $tempstore = $this->tempstoreFactory->get('music_search');
+    $tempstore = $this->tempStoreFactory->get('music_search');
     $params = $tempstore->get('params');
     $query = $params['query'];
+    $type = $params['type'];
 
-    $form['edit_query'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Edit'),
-      '#autocomplete_route_name' => 'music_search.autocomplete',
-//      '#description' => $this->t('Type out what you want to search for...'),
-      '#default_value' => $query,
+    $discogsRes = $this->service->getDiscogs($query);
+//    $spotifyRes = $this->service->getSpotify($query);
+    $headerDiscogs = [];
+//    $headerSpotify = [];
+    switch ($type) {
+      case 'artist':
+        $headerDiscogs = [
+          'thumb' => $this->t('Thumbnail'),
+          'title' => $this->t('Title'),
+          'type' => $this->t('Type'),
+          'discogs_id' => $this->t('Discogs ID'),
+        ];
+        $form = $this->getArtistForm($query);
+      case 'album':
+        $headerDiscogs = [
+          'thumb' => $this->t('Thumbnail'),
+          'title' => $this->t('Title'),
+          'type' => $this->t('Type'),
+          'discogs_id' => $this->t('Discogs ID'),
+        ];
+        $form = $this->getAlbumForm($query);
+      case 'song':
+        $headerDiscogs = [
+          'thumb' => $this->t('Thumbnail'),
+          'title' => $this->t('Title'),
+          'type' => $this->t('Type'),
+          'discogs_id' => $this->t('Discogs ID'),
+        ];
+        $form = $this->getSongForm($query);
+    }
+
+    $optionsDiscogs = [];
+    foreach ($discogsRes['results'] as $row) {
+      $optionsDiscogs[] = [
+        'thumb' => [
+          '#markup' => '<img src="'.$row['thumb'].'" width="32px" height="32px"/>',
+        ],
+        'type' => ucfirst($this->t($row['type'])),
+        'title' => $row['title'],
+        'discogs_id' => $row['id'],
+      ];
+    }
+
+    $form['tableDiscogs'] = [
+      '#type' => 'tableselect',
+      '#caption' => [
+        '#markup' => '<h2><strong>'.$this->t('Data from Discogs').'</strong></h2>'
+      ],
+      '#header' => $headerDiscogs,
+      '#options' => $optionsDiscogs,
+      '#empty' => $this->t('Discogs came out empty')
     ];
 
     $form['actions'] = [
