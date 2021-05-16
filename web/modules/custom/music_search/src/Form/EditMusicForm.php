@@ -42,6 +42,17 @@ class EditMusicForm extends FormBase {
   protected $service;
 
   /**
+   * Constants of types
+   * @var string[]
+   */
+  private $TYPES = [
+    'label' => 'Publisher',
+    'release' => 'Album',
+    'master' => 'Album',
+    'artist' => 'Artist'
+  ];
+
+  /**
    * Constructs a new MusicSearchForm object
    */
   public function __construct(
@@ -162,42 +173,35 @@ class EditMusicForm extends FormBase {
 
     $discogsRes = $this->service->getDiscogs($query);
 //    $spotifyRes = $this->service->getSpotify($query);
-    $headerDiscogs = [];
+    $headerDiscogs = [
+      'thumb' => $this->t('Thumbnail'),
+      'title' => $this->t('Title'),
+      'type' => $this->t('Type'),
+      'discogs_id' => $this->t('Discogs ID'),
+    ];
 //    $headerSpotify = [];
     switch ($type) {
       case 'artist':
-        $headerDiscogs = [
-          'thumb' => $this->t('Thumbnail'),
-          'title' => $this->t('Title'),
-          'type' => $this->t('Type'),
-          'discogs_id' => $this->t('Discogs ID'),
-        ];
         $form = $this->getArtistForm($query);
+        break;
       case 'album':
-        $headerDiscogs = [
-          'thumb' => $this->t('Thumbnail'),
-          'title' => $this->t('Title'),
-          'type' => $this->t('Type'),
-          'discogs_id' => $this->t('Discogs ID'),
-        ];
         $form = $this->getAlbumForm($query);
+        break;
       case 'song':
-        $headerDiscogs = [
-          'thumb' => $this->t('Thumbnail'),
-          'title' => $this->t('Title'),
-          'type' => $this->t('Type'),
-          'discogs_id' => $this->t('Discogs ID'),
-        ];
         $form = $this->getSongForm($query);
+        break;
     }
 
     $optionsDiscogs = [];
     foreach ($discogsRes['results'] as $row) {
       $optionsDiscogs[] = [
         'thumb' => [
-          '#markup' => '<img src="'.$row['thumb'].'" width="32px" height="32px"/>',
+          'data' => [
+            '#type' => 'markup',
+            '#markup' => '<img src="'.$row['thumb'].'" width="100px" height="100px"/>',
+          ],
         ],
-        'type' => ucfirst($this->t($row['type'])),
+        'type' => $this->t($this->TYPES[$row['type']]),
         'title' => $row['title'],
         'discogs_id' => $row['id'],
       ];

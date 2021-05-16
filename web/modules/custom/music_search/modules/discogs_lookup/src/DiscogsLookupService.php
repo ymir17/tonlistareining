@@ -2,7 +2,6 @@
 
 namespace Drupal\discogs_lookup;
 
-//use Discogs\ClientFactory;
 use GuzzleHttp\Client;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\TempStore\PrivateTempStoreFactory;
@@ -92,7 +91,6 @@ class DiscogsLookupService {
     $response = $promise->wait();
 
 //    var_dump($response);
-//    echo $response->getBody();
     return Json::decode($response->getBody());
   }
 }
