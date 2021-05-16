@@ -2,7 +2,6 @@
 
 namespace Drupal\discogs_lookup;
 
-//use Discogs\ClientFactory;
 use GuzzleHttp\Client;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\TempStore\PrivateTempStoreFactory;
@@ -67,11 +66,7 @@ class DiscogsLookupService {
   /**
    * Calls the Discogs' server with given query and receives a response
    */
-  public function lookup($query, $type = null) {
-//    $tempstore = $this->tempstoreFactory->get('music_search');
-//    $params = $tempstore->get('params');
-//    $query = $params['query'];
-
+  public function lookup($query, $type = '') {
     $key = 'ZTTfWenqRIBJqcNkwnxR';
     $secret = 'oKuGvfNImmewMWrSLTXIcctphUKWbFrB';
     $uri = 'https://api.discogs.com';
@@ -83,6 +78,7 @@ class DiscogsLookupService {
       '/database/search', [
         'query' => [
           'q' => $query,
+          'type' => $type,
           'key' => $key,
           'secret' => $secret
         ],
@@ -92,7 +88,6 @@ class DiscogsLookupService {
     $response = $promise->wait();
 
 //    var_dump($response);
-//    echo $response->getBody();
     return Json::decode($response->getBody());
   }
 }
