@@ -114,20 +114,8 @@ class MusicSearchController extends ControllerBase {
     $query = $request->query->get('q');
     $matches = [];
     if (strlen($query) >= 3) {
-//      $db = \Drupal::database();
-//      $results = $db->select('node_field_data', 'n')
-//        ->fields('n', ['nid', 'title', 'type'])
-//        ->condition('title', $query . '%', 'LIKE')
-//        ->execute()
-//        ->fetchAll();
-//      foreach ($results as $row) {
-//        $matches[] = [
-//          'value' => $row->title,
-//          'label' => '['.$row->type.'] '.$row->title
-//        ];
-//      }
-
-      $spotifyResults = $this->spotifyLookup($query);
+//      $a = 10;
+//      $spotifyResults = $this->spotifyLookup($query);
 
 //      foreact ($spotifyResults['results'] as $row) {
 //        $matches[] = [
@@ -159,10 +147,10 @@ class MusicSearchController extends ControllerBase {
    * @param $query
    * @return array
    */
-  public function spotifyLookup($query = null, $type = null) {
+  public function spotifyLookup($query, $type = '') {
 //    return $this->spotifyService->lookup($query, $type);
     $json_arr = $this->spotifyService->lookup($query, $type);
-
+//
     return $json_arr;
   }
 
@@ -170,7 +158,7 @@ class MusicSearchController extends ControllerBase {
    * @param $query
    * @return array
    */
-  public function discogsLookup($query = null, $type = null) {
+  public function discogsLookup($query, $type = '') {
 //    return $this->discogsService->lookup($query, $type);
     $json_array = $this->discogsService->lookup($query, $type);
 

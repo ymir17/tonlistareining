@@ -22,7 +22,8 @@
         "drupal/core-recommended": "^9.1",
         "drupal/pathauto": "^1.8",
         "drush/drush": "^10.4",
-        "ricbra/php-discogs-api": "^1.4"
+        "ricbra/php-discogs-api": "^1.4",
+      "ext-curl": "*"
     },
     "conflict": {
         "drupal/drupal": "*"
