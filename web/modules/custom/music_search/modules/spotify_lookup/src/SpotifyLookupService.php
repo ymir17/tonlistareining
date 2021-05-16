@@ -8,6 +8,7 @@ use Drupal\Core\TempStore\PrivateTempStoreFactory;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Component\Serialization\Json;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+
 class SpotifyLookupService {
 
   /**
@@ -32,6 +33,13 @@ class SpotifyLookupService {
   protected $tempstoreFactory;
 
   /**
+   * Spotify credentials
+   */
+  private $key = '338951373f7c4b75b866b8f390b86e13';
+  private $secret = 'd39da6dfbbb641948c1f38836aae2430';
+  private $token = '';
+
+  /**
    * Constructs a new MusicSearchForm object
    */
   public function __construct(
@@ -54,4 +62,39 @@ class SpotifyLookupService {
       $container->get('tempstore.private')
     );
   }
+
+  /**
+   * Requests authorization
+   */
+  public function requestAuth() {
+
+    $client = new GuzzleHttp\Client();
+    $promise = $client->request('GET', 'https://accounts.spotify.com/authorize', [
+      'query' => [
+        'client_id' => $this->key,
+        'response_type' => 'code',
+        'redirect_uri' => 'https://tonlistareining.ddev.site/music_search']
+      ]
+    );
+
+    $response = $promise->wait();
+
+    $breyta = 'strengur';
+    $breyta = 10;
+
+    return $response;
+
+  }
+
+  /**
+   * Calls the Spotify's server with given query and receives a response
+   */
+  public function lookup($query) {
+
+    $val = $this->requestAuth();
+
+    return $val;
+  }
 }
+
+

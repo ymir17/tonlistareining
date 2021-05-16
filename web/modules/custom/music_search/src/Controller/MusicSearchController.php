@@ -40,12 +40,12 @@ class MusicSearchController extends ControllerBase {
    */
   protected $service;
 
-//  /**
-//   * Spotify Lookup service
-//   *
-//   * @var SpotifyLookupService
-//   */
-//  protected $spotifyLookup;
+  /**
+   * Spotify Lookup service
+   *
+   * @var SpotifyLookupService
+   */
+  protected $spotifyService;
 
   /**
    * Discogs Lookup service
@@ -67,12 +67,12 @@ class MusicSearchController extends ControllerBase {
   public function __construct(PrivateTempStoreFactory $tempStoreFactory,
                               MessengerInterface $messenger,
                               MusicSearchService $service,
-                              /*SpotifyLookupService $spotifyLookup,*/
+                              SpotifyLookupService $spotifyService,
                               DiscogsLookupService $discogsService) {
     $this->tempStoreFactory = $tempStoreFactory;
     $this->messenger = $messenger;
     $this->service = $service;
-//    $this->spotifyLookup = $spotifyLookup;
+    $this->spotifyService = $spotifyService;
     $this->discogsService = $discogsService;
   }
 
@@ -84,7 +84,7 @@ class MusicSearchController extends ControllerBase {
       $container->get('tempstore.private'),
       $container->get('messenger'),
       $container->get('music_search.service'),
-//      $container->get('music_search.spotify.service'),
+      $container->get('music_search.spotify.service'),
       $container->get('music_search.discogs.service'),
     );
   }
@@ -127,6 +127,14 @@ class MusicSearchController extends ControllerBase {
 //        ];
 //      }
 
+      $spotifyResults = $this->spotifyLookup($query);
+
+//      foreact ($spotifyResults['results'] as $row) {
+//        $matches[] = [
+//
+//        ]
+//      }
+
       $discogsResults = $this->discogsLookup($query);
 
       foreach ($discogsResults['results'] as $row) {
@@ -135,6 +143,8 @@ class MusicSearchController extends ControllerBase {
           'label' => '<img src="'.$row['thumb'].'" width="32" height="32"/>'.' ['.$this->TYPES[$row['type']].'] '.$row['title'].' (Discogs)'
         ];
       }
+
+
 
 //    return [
 //      'discogs' => $this->discogsLookup($query),
@@ -145,8 +155,15 @@ class MusicSearchController extends ControllerBase {
     return new JsonResponse($matches);
   }
 
-  public function spotifyLookup() {
-    // TODO: Call spotifyLookupService
+  /**
+   * @param $query
+   * @return array
+   */
+  public function spotifyLookup($query = null, $type = null) {
+//    return $this->spotifyService->lookup($query, $type);
+    $json_arr = $this->spotifyService->lookup($query, $type);
+
+    return $json_arr;
   }
 
   /**
@@ -154,6 +171,7 @@ class MusicSearchController extends ControllerBase {
    * @return array
    */
   public function discogsLookup($query = null, $type = null) {
+//    return $this->discogsService->lookup($query, $type);
     $json_array = $this->discogsService->lookup($query, $type);
 
     return $json_array;
