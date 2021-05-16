@@ -88,11 +88,11 @@ class MusicSearchForm extends FormBase {
       '#title' => $this->t('I\'m searching for '),
       '#description' => $this->t('What is it that you\'re searching for?'),
       '#options' => [
-        'musician' => $this->t('Musician'),
-        'record' => $this->t('Record'),
+        'artist' => $this->t('Musician'),
+        'album' => $this->t('Record'),
         'song' => $this->t('Song'),
       ],
-      '#default_value' => 'musician',
+      '#default_value' => 'artist',
     ];
 
     $form['actions'] = [
@@ -124,12 +124,12 @@ class MusicSearchForm extends FormBase {
     $params['query'] = $form_state->getValue('query');
     $params['type'] = $form_state->getValue('type');
     // 2. Create a PrivateTempStore object with the collection 'ex_form_values'.
-    $tempstore = $this->tempStoreFactory->get('music_search');  // TODO: Figure out what this is, giving problems!
+    $tempstore = $this->tempStoreFactory->get('music_search');
     // 3. Store the $params array with the key 'params'.
     try {
       $tempstore->set('params', $params);
       // 4. Redirect to the simple controller.
-      $form_state->setRedirect('music_search.discogs_lookup');
+      $form_state->setRedirect('music_search.edit_form');
     }
     catch (\Exception $error) {
       // Store this error in the log.

@@ -40,19 +40,26 @@ class MusicSearchController extends ControllerBase {
    */
   protected $service;
 
-  /**
-   * Spotify Lookup service
-   *
-   * @var SpotifyLookupService
-   */
-  protected $spotifyLookup;
+//  /**
+//   * Spotify Lookup service
+//   *
+//   * @var SpotifyLookupService
+//   */
+//  protected $spotifyLookup;
 
   /**
    * Discogs Lookup service
    *
    * @var DiscogsLookupService
    */
-  protected $discogsLookup;
+  protected $discogsService;
+
+  private $TYPES = [
+    'label' => 'Publisher',
+    'release' => 'Album',
+    'master' => 'Album',
+    'artist' => 'Artist'
+  ];
 
   /**
    * Inject services
@@ -60,13 +67,13 @@ class MusicSearchController extends ControllerBase {
   public function __construct(PrivateTempStoreFactory $tempStoreFactory,
                               MessengerInterface $messenger,
                               MusicSearchService $service,
-                              SpotifyLookupService $spotifyLookup,
-                              DiscogsLookupService $discogsLookup) {
+                              /*SpotifyLookupService $spotifyLookup,*/
+                              DiscogsLookupService $discogsService) {
     $this->tempStoreFactory = $tempStoreFactory;
     $this->messenger = $messenger;
     $this->service = $service;
-    $this->spotifyLookup = $spotifyLookup;
-    $this->discogsLookup = $discogsLookup;
+//    $this->spotifyLookup = $spotifyLookup;
+    $this->discogsService = $discogsService;
   }
 
   /**
@@ -77,7 +84,7 @@ class MusicSearchController extends ControllerBase {
       $container->get('tempstore.private'),
       $container->get('messenger'),
       $container->get('music_search.service'),
-      $container->get('music_search.spotify.service'),
+//      $container->get('music_search.spotify.service'),
       $container->get('music_search.discogs.service'),
     );
   }
@@ -104,20 +111,37 @@ class MusicSearchController extends ControllerBase {
    *  A JSON response containing the autocomplete suggestion
    */
   public function autocomplete(Request $request) {
-    $string = $request->query->get('q');
+    $query = $request->query->get('q');
     $matches = [];
-    $db = \Drupal::database();
-    $query = $db->select('node_field_data', 'n')
-      ->fields('n', ['nid', 'title', 'type'])
-      ->condition('title', $string . '%', 'LIKE')
-      ->execute()
-      ->fetchAll();
-    foreach ($query as $row) {
-      $matches[] = [
-        'value' => $row->title,
-        'label' => '['.$row->type.'] '.$row->title
-      ];
+    if (strlen($query) >= 3) {
+//      $db = \Drupal::database();
+//      $results = $db->select('node_field_data', 'n')
+//        ->fields('n', ['nid', 'title', 'type'])
+//        ->condition('title', $query . '%', 'LIKE')
+//        ->execute()
+//        ->fetchAll();
+//      foreach ($results as $row) {
+//        $matches[] = [
+//          'value' => $row->title,
+//          'label' => '['.$row->type.'] '.$row->title
+//        ];
+//      }
+
+      $discogsResults = $this->discogsLookup($query);
+
+      foreach ($discogsResults['results'] as $row) {
+        $matches[] = [
+          'value' => $row['title'],
+          'label' => '<img src="'.$row['thumb'].'" width="32" height="32"/>'.' ['.$this->TYPES[$row['type']].'] '.$row['title'].' (Discogs)'
+        ];
+      }
+
+//    return [
+//      'discogs' => $this->discogsLookup($query),
+////      'spotify' => $this->spotifyLookup($query)
+//    ];
     }
+//    $tempStore = $this->tempStoreFactory->get('music_search');
     return new JsonResponse($matches);
   }
 
@@ -125,16 +149,13 @@ class MusicSearchController extends ControllerBase {
     // TODO: Call spotifyLookupService
   }
 
-  public function discogsLookup() {
-    $json_array = $this->discogsLookup->lookup();
-//    $matches = [];
-//    foreach ($json_array['results'] as $obj) {
-//      $matches['id'] = $obj['id'];
-//      $matches['title'] = $obj['title'];
-//      $matches['images'] = [$obj['thumb'], $obj['cover_image']];
-//      $matches['type'] = $obj['type'];
-//      $matches['url'] = $obj['resource_url'];
-//    }
+  /**
+   * @param $query
+   * @return array
+   */
+  public function discogsLookup($query = null, $type = null) {
+    $json_array = $this->discogsService->lookup($query, $type);
+
     return $json_array;
   }
 }
