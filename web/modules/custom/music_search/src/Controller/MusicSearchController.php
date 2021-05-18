@@ -116,12 +116,14 @@ class MusicSearchController extends ControllerBase {
     if (strlen($query) >= 3) {
       $spotifyResults = $this->spotifyLookup($query);
       $a = 10;
-//      foreach ($spotifyResults['results'] as $row) {
-//        $matches[] = [
-//          'value' => $row['title'],
-//          'label' => $row['thumb']
-//        ];
-//      }
+      foreach ($spotifyResults as $type) {
+        foreach ($type['items'] as $item) {
+          $matches[] = [
+            'value' => $item['name'],
+            'label' => '<img src="'.end($item['images'])['url'].'" width="32" height="32"/>'.' ['.ucwords($item['type']).'] '.$item['name'].' (Spotify)'
+          ];
+        }
+      }
 
       $discogsResults = $this->discogsLookup($query);
 
@@ -131,15 +133,7 @@ class MusicSearchController extends ControllerBase {
           'label' => '<img src="'.$row['thumb'].'" width="32" height="32"/>'.' ['.$this->TYPES[$row['type']].'] '.$row['title'].' (Discogs)'
         ];
       }
-
-
-
-//    return [
-//      'discogs' => $this->discogsLookup($query),
-////      'spotify' => $this->spotifyLookup($query)
-//    ];
     }
-//    $tempStore = $this->tempStoreFactory->get('music_search');
     return new JsonResponse($matches);
   }
 
@@ -148,9 +142,7 @@ class MusicSearchController extends ControllerBase {
    * @return array
    */
   public function spotifyLookup($query, $type = '') {
-//    return $this->spotifyService->lookup($query, $type);
     $json_arr = $this->spotifyService->lookup($query, $type);
-//
     return $json_arr;
   }
 
@@ -159,9 +151,7 @@ class MusicSearchController extends ControllerBase {
    * @return array
    */
   public function discogsLookup($query, $type = '') {
-//    return $this->discogsService->lookup($query, $type);
     $json_array = $this->discogsService->lookup($query, $type);
-
     return $json_array;
   }
 }
