@@ -75,8 +75,8 @@ class DiscogsLookupService {
     $client = new Client(['base_uri' => $uri]);
     $promise = $client->requestAsync(
       'GET',
-      '/database/search', [
-        'query' => [
+      '/database/search',
+      ['query' => [
           'q' => $query,
           'type' => $type,
           'key' => $key,

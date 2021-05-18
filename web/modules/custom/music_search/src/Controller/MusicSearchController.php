@@ -114,13 +114,13 @@ class MusicSearchController extends ControllerBase {
     $query = $request->query->get('q');
     $matches = [];
     if (strlen($query) >= 3) {
-//      $a = 10;
-//      $spotifyResults = $this->spotifyLookup($query);
-
-//      foreact ($spotifyResults['results'] as $row) {
+      $spotifyResults = $this->spotifyLookup($query);
+      $a = 10;
+//      foreach ($spotifyResults['results'] as $row) {
 //        $matches[] = [
-//
-//        ]
+//          'value' => $row['title'],
+//          'label' => $row['thumb']
+//        ];
 //      }
 
       $discogsResults = $this->discogsLookup($query);

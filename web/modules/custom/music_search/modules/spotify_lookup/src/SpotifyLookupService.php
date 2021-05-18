@@ -67,7 +67,7 @@ class SpotifyLookupService {
   /**
    * Requests authorization
    */
-  public function requestAuth() {
+//  public function requestAuth() {
 //    return $this->_spotify_api_get_auth_token();
 //    $client = new Client();
 //    $promise = $client->requestAsync(
@@ -86,7 +86,7 @@ class SpotifyLookupService {
 //    $breyta = 10;
 //
 //    return Json::decode($response->getBody());
-  }
+//  }
 
   /**
    * Sends a GET query to Spotify for specific URL
@@ -96,7 +96,8 @@ class SpotifyLookupService {
    * @return object
    *   Returns a stdClass with the search results or an error message
    */
-  function _spotify_api_get_query($uri) {
+  private function _spotify_api_get_query(string $uri) {
+    $client = new Client(['base_uri' => 'https://api.spotify.com/v1/']);
     $cache = $this->_spotify_api_get_cache_search($uri);
     $search_results = null;
 
@@ -106,16 +107,16 @@ class SpotifyLookupService {
     else {
       $token = $this->_spotify_api_get_auth_token();
       $token = Json::decode($token);
-      $options = array(
-        'method' => 'GET',
+      $options = [
         'timeout' => 3,
         'headers' => [
           'Accept' => 'application/json',
-          'Authorization' => "Bearer " . $token->access_token,
+          'Authorization' => "Bearer " . $token['access_token'],
         ],
-      );
+      ];
 
-      $search_results = \Drupal::httpClient()->request($uri, $options);
+//      $search_results = \Drupal::httpClient()->request($uri, $options);
+      $search_results = $client->request('GET', $uri, $options);
 
       if (empty($search_results->error)) {
         $search_results = Json::decode($search_results->getBody());
@@ -123,9 +124,9 @@ class SpotifyLookupService {
 
       }
       else {
-        $this->messenger->addMessage($this->t('The search request resulted in the following error: @error.', array(
+        $this->messenger->addMessage($this->t('The search request resulted in the following error: @error.', [
           '@error' => $search_results->error,
-        )));
+        ]));
 
         return $search_results->error;
       }
@@ -142,7 +143,7 @@ class SpotifyLookupService {
    * @param array $data
    *   The data to cache.
    */
-  function _spotify_api_set_cache_search($cid, array $data) {
+  private function _spotify_api_set_cache_search(string $cid, array $data) {
     \Drupal::cache()->set($cid, $data, time() + $this->SPOTIFY_CACHE_LIFETIME/*,'spotify-api-cache'*/);
   }
 
@@ -155,7 +156,7 @@ class SpotifyLookupService {
    * @return array|bool
    *   Returns either the cache results or false if nothing is found.
    */
-  function _spotify_api_get_cache_search($cid) {
+  private function _spotify_api_get_cache_search(string $cid) {
     $cache = \Drupal::cache()->get($cid)/*, 'spotify-api-cache')*/;
     if (!empty($cache)) {
       if ($cache->expire > time()) {
@@ -168,7 +169,7 @@ class SpotifyLookupService {
   /**
    * Gets Auth token from the Spotify API
    */
-  function _spotify_api_get_auth_token() {
+  private function _spotify_api_get_auth_token() {
     $connection_string = "https://accounts.spotify.com/api/token";
     $key = base64_encode($this->key . ':' . $this->secret);
     $ch = curl_init();
@@ -189,15 +190,18 @@ class SpotifyLookupService {
     return $result;
   }
 
-  function generateURI($query, $type='') {
-    return 'https://api.spotify.com/v1/search?q='.$query;
-  }
+//  function generateURI($query, $type='') {
+//    return '/search?q='.$query;
+//  }
 
   /**
    * Calls the Spotify's server with given query and receives a response
    */
   public function lookup($query, $type = '') {
-    $val = $this->_spotify_api_get_query($this->generateURI($query));
+    if ($type === '') {
+      $type = 'artist,album,track';
+    }
+    $val = $this->_spotify_api_get_query('search?q='.urlencode($query).'&type='.urlencode($type));
 
     return $val;
   }
