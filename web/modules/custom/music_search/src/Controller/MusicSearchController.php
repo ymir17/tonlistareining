@@ -90,18 +90,6 @@ class MusicSearchController extends ControllerBase {
   }
 
   /**
-   * Music Search
-   *
-   * @return array
-   *  some message
-   */
-  public function musicSearch() {
-    return [
-      '#markup' => $this->service->getSpotify()
-    ];
-  }
-
-  /**
    * Returns response for the autocompletion
    *
    * @param Request $request
@@ -115,25 +103,31 @@ class MusicSearchController extends ControllerBase {
     $matches = [];
     if (strlen($query) >= 3) {
       $spotifyResults = $this->spotifyLookup($query);
-      $a = 10;
+
+      $c = 0;
       foreach ($spotifyResults as $type) {
         foreach ($type['items'] as $item) {
-          $matches[] = [
-            'value' => $item['name'],
+          $matches[$c] = [
+            'value' => $item['name'].' ['.$c.']',
             'label' => '<img src="'.end($item['images'])['url'].'" width="32" height="32"/>'.' ['.ucwords($item['type']).'] '.$item['name'].' (Spotify)'
           ];
+          $c += 2;
         }
       }
 
       $discogsResults = $this->discogsLookup($query);
 
+      $c = 1;
       foreach ($discogsResults['results'] as $row) {
-        $matches[] = [
-          'value' => $row['title'],
+        $matches[$c] = [
+          'value' => $row['title'].' ['.$c.']',
           'label' => '<img src="'.$row['thumb'].'" width="32" height="32"/>'.' ['.$this->TYPES[$row['type']].'] '.$row['title'].' (Discogs)'
         ];
+        $c += 2;
       }
     }
+    $tempstore = $this->tempStoreFactory->get('music_search');
+    $tempstore->set('matches', $matches);
     return new JsonResponse($matches);
   }
 

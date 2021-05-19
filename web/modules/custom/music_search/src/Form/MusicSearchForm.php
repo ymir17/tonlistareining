@@ -87,8 +87,8 @@ class MusicSearchForm extends FormBase {
       '#type' => 'select',
       '#title' => $this->t('I\'m searching for '),
       '#options' => [
-        'artist' => $this->t('Musician'),
-        'release' => $this->t('Record'),
+        'artist' => $this->t('Artist'),
+        'release' => $this->t('Album'),
         'song' => $this->t('Song'),
       ],
       '#default_value' => 'artist',

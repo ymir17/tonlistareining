@@ -65,30 +65,6 @@ class SpotifyLookupService {
   }
 
   /**
-   * Requests authorization
-   */
-//  public function requestAuth() {
-//    return $this->_spotify_api_get_auth_token();
-//    $client = new Client();
-//    $promise = $client->requestAsync(
-//      'GET',
-//      'https://accounts.spotify.com/api/token', [
-//      'query' => [
-//        'client_id' => $this->key,
-//        'response_type' => 'code',
-//        'redirect_uri' => 'https://tonlistareining.ddev.site/music_search']
-//      ]
-//    );
-//
-//    $response = $promise->wait();
-//
-//    $breyta = 'strengur';
-//    $breyta = 10;
-//
-//    return Json::decode($response->getBody());
-//  }
-
-  /**
    * Sends a GET query to Spotify for specific URL
    *
    * @param $uri string
@@ -189,10 +165,6 @@ class SpotifyLookupService {
     curl_close ($ch);
     return $result;
   }
-
-//  function generateURI($query, $type='') {
-//    return '/search?q='.$query;
-//  }
 
   /**
    * Calls the Spotify's server with given query and receives a response
