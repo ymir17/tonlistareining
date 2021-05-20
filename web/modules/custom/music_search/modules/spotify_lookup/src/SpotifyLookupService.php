@@ -174,9 +174,17 @@ class SpotifyLookupService {
       $type = 'artist,album,track';
     } elseif ($type === 'release') {
       $type = 'album';
+<<<<<<< HEAD
     }
 
     $val = $this->_spotify_api_get_query('search?q='.urlencode($query).'&type='.urlencode($type).'&limit=5');
+=======
+    } elseif ($type === 'song') {
+      $type = 'track';
+    }
+
+    $val = $this->_spotify_api_get_query('search?q='.urlencode($query).'&type='.urlencode($type));
+>>>>>>> 66da720087b79e3f2ee81318f3c98934901340b1
 
     return $val;
   }
