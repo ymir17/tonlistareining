@@ -79,6 +79,7 @@ class DiscogsLookupService {
       ['query' => [
           'q' => $query,
           'type' => $type,
+          'per_page' => '5',
           'key' => $key,
           'secret' => $secret
         ],
@@ -90,4 +91,6 @@ class DiscogsLookupService {
 //    var_dump($response);
     return Json::decode($response->getBody());
   }
+
+  public function search($query, $type) {}
 }

@@ -73,8 +73,6 @@ class MusicSearchForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-//    $config = $this->config('music_search.config');
-
     $form['query'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Music Search'),
@@ -120,7 +118,9 @@ class MusicSearchForm extends FormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     // 1. Set the $params array with the values of the form
     // to save those values in the store.
-    $params['query'] = $form_state->getValue('query');
+    $query = $form_state->getValue('query');
+    list($params['query'], $id) = explode(' ', $query);
+    $params['id'] = trim($id, '[]');
     $params['type'] = $form_state->getValue('type');
     // 2. Create a PrivateTempStore object with the collection 'ex_form_values'.
     $tempstore = $this->tempStoreFactory->get('music_search');
@@ -128,7 +128,7 @@ class MusicSearchForm extends FormBase {
     try {
       $tempstore->set('params', $params);
       // 4. Redirect to the simple controller.
-      $form_state->setRedirect('music_search.edit_form');
+      $form_state->setRedirect('music_search.result_list_form');
     }
     catch (\Exception $error) {
       // Store this error in the log.

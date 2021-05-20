@@ -35,18 +35,26 @@ music_search.discogs_lookup:
   requirements:
     _role: 'administrator+writer+editor'
 
-music_search.edit_form:
+music_search.result_list_form:
+  path: '/music_search/list'
+  defaults:
+    _title: 'Results List'
+    _form: '\Drupal\music_search\Form\ResultListForm'
+  requirements:
+    _role: 'administrator+writer+editor'
+
+music_search.edit:
   path: '/music_search/edit'
   defaults:
-    _title: 'Edit Music Form'
+    _title: 'Edit'
     _form: '\Drupal\music_search\Form\EditMusicForm'
   requirements:
     _role: 'administrator+writer+editor'
 
-music_search.music_form:
-  path: '/admin/config/music_search'
-  defaults:
-    _form: '\Drupal\music_search\Form\MusicSearchConfigurationForm'
-    _title: 'Search Music'
-  requirements:
-    _permission: 'administer site configuration'
+#music_search.music_form:
+#  path: '/admin/config/music_search'
+#  defaults:
+#    _form: '\Drupal\music_search\Form\MusicSearchConfigurationForm'
+#    _title: 'Search Music'
+#  requirements:
+#    _permission: 'administer site configuration'

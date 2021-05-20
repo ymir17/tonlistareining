@@ -155,7 +155,7 @@ class SpotifyLookupService {
     curl_setopt($ch, CURLOPT_POSTFIELDS, "grant_type=client_credentials");
     curl_setopt($ch, CURLOPT_POST, 1);
 
-    $headers = array();
+    $headers = [];
     $headers[] = "Authorization: Basic " . $key;
     $headers[] = "Content-Type: application/x-www-form-urlencoded";
     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
@@ -172,8 +172,11 @@ class SpotifyLookupService {
   public function lookup($query, $type = '') {
     if ($type === '') {
       $type = 'artist,album,track';
+    } elseif ($type === 'release') {
+      $type = 'album';
     }
-    $val = $this->_spotify_api_get_query('search?q='.urlencode($query).'&type='.urlencode($type));
+
+    $val = $this->_spotify_api_get_query('search?q='.urlencode($query).'&type='.urlencode($type).'&limit=5');
 
     return $val;
   }
