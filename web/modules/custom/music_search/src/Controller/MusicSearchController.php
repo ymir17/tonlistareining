@@ -108,7 +108,7 @@ class MusicSearchController extends ControllerBase {
       foreach ($spotifyResults as $type) {
         foreach ($type['items'] as $item) {
           $matches[$c] = [
-            'value' => $item['name'].' ['.$c.']',
+            'value' => $item['name'].' ['.$item['id'].']',
             'label' => '<img src="'.end($item['images'])['url'].'" width="32" height="32"/>'.' ['.ucwords($item['type']).'] '.$item['name'].' (Spotify)'
           ];
           $c += 2;
@@ -120,12 +120,13 @@ class MusicSearchController extends ControllerBase {
       $c = 1;
       foreach ($discogsResults['results'] as $row) {
         $matches[$c] = [
-          'value' => $row['title'].' ['.$c.']',
+          'value' => $row['title'].' ['.$row['id'].']',
           'label' => '<img src="'.$row['thumb'].'" width="32" height="32"/>'.' ['.$this->TYPES[$row['type']].'] '.$row['title'].' (Discogs)'
         ];
         $c += 2;
       }
     }
+    ksort($matches);
     $tempstore = $this->tempStoreFactory->get('music_search');
     $tempstore->set('matches', $matches);
     return new JsonResponse($matches);
