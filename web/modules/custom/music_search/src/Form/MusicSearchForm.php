@@ -119,7 +119,9 @@ class MusicSearchForm extends FormBase {
     // 1. Set the $params array with the values of the form
     // to save those values in the store.
     $query = $form_state->getValue('query');
-    list($params['query'], $id) = explode(' ', $query);
+    $id = strrchr($query, '[');
+    $params['query'] = trim(strtok($query, '['));
+//    list($params['query'], $id) = explode(' ', $query);
     $params['id'] = trim($id, '[]');
     $params['type'] = $form_state->getValue('type');
     // 2. Create a PrivateTempStore object with the collection 'ex_form_values'.
