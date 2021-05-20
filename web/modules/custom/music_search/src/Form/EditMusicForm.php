@@ -8,6 +8,8 @@ use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\TempStore\PrivateTempStoreFactory;
 use Drupal\music_search\MusicSearchService;
+use Drupal\spotify_lookup\SpotifyLookupService;
+use Drupal\discogs_lookup\DiscogsLookupService;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -42,18 +44,32 @@ class EditMusicForm extends FormBase {
   protected $service;
 
   /**
+   * @var \Drupal\spotify_lookup\SpotifyLookupService
+   */
+  protected $spotifyService;
+
+  /**
+   * @var \Drupal\discogs_lookup\DiscogsLookupService
+   */
+  protected $discogsService;
+
+  /**
    * Constructs a new EditMusicForm object
    */
   public function __construct(
     MessengerInterface $messenger,
     LoggerChannelFactoryInterface $logger_factory,
     PrivateTempStoreFactory $tempStoreFactory,
-    MusicSearchService $musicSearchService
+    MusicSearchService $musicSearchService,
+    SpotifyLookupService $spotifyService,
+    DiscogsLookupService $discogsService
   ) {
     $this->messenger = $messenger;
     $this->loggerFactory = $logger_factory;
     $this->tempStoreFactory = $tempStoreFactory;
     $this->service = $musicSearchService;
+    $this->spotifyService = $spotifyService;
+    $this->discogsService = $discogsService;
   }
 
   /**
@@ -64,7 +80,9 @@ class EditMusicForm extends FormBase {
       $container->get('messenger'),
       $container->get('logger.factory'),
       $container->get('tempstore.private'),
-      $container->get('music_search.service')
+      $container->get('music_search.service'),
+      $container->get('music_search.spotify.service'),
+      $container->get('music_search.discogs.service')
     );
   }
 
@@ -83,16 +101,31 @@ class EditMusicForm extends FormBase {
     $params = $tempstore->get('params');
 //    $matches = $tempstore->get('matches');
     $query = $params['query'];
-    $id = $params['id'];
-//    ctype_digit($id)  If True then it's Spotify, else Discogs
+//    $discogsIDs = $params['discogsIDs'];
+//    $spotifyIDs = $params['spotifyIDs'];
+    $ids = $params['ids'];
     $type = $params['type'];
 
-    if (ctype_digit($id)) {
-      $this->service->getSpotify($query, );
+    $result = [];
+    foreach($ids as $id) {  // Why is $result so empty? :cry_emoji:
+      if (ctype_digit($id)) {  // If True then it's Discogs, else Discogs
+        $result[$id] = $this->discogsService->getById($id, $type);
+      } else {
+        $result[$id] = $this->spotifyService->getById($id, $type);
+      }
     }
 
     $form['title'] = [
       '#type' => 'textarea',
+    ];
+
+    $form['actions'] = [
+      '#type' => 'actions',
+      'submit' => [
+        '#type' => 'submit',
+        '#value' => $this->t('Save')
+      ],
+      '#weight' => -1
     ];
 
     return $form;

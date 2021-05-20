@@ -39,6 +39,18 @@ class DiscogsLookupService {
    */
   protected $tempstoreFactory;
 
+  private $KEY = 'ZTTfWenqRIBJqcNkwnxR';
+
+  private $SECRET = 'oKuGvfNImmewMWrSLTXIcctphUKWbFrB';
+
+  private $URI = 'https://api.discogs.com';
+
+  private $TYPES = [
+    'artist' => 'artists',
+    'release' => 'releases',
+    'song' => 'songs',
+  ];
+
   /**
    * Constructs a new MusicSearchForm object
    */
@@ -67,12 +79,9 @@ class DiscogsLookupService {
    * Calls the Discogs' server with given query and receives a response
    */
   public function lookup($query, $type = '') {
-    $key = 'ZTTfWenqRIBJqcNkwnxR';
-    $secret = 'oKuGvfNImmewMWrSLTXIcctphUKWbFrB';
-    $uri = 'https://api.discogs.com';
 //    $header = ['User-Agent' => 'music-search/0.1 +https://tonlistareining.ddev.site'];
 
-    $client = new Client(['base_uri' => $uri]);
+    $client = new Client(['base_uri' => $this->URI]);
     $promise = $client->requestAsync(
       'GET',
       '/database/search',
@@ -80,8 +89,8 @@ class DiscogsLookupService {
           'q' => $query,
           'type' => $type,
           'per_page' => '5',
-          'key' => $key,
-          'secret' => $secret
+          'key' => $this->KEY,
+          'secret' => $this->SECRET
         ],
       ]
     );
@@ -92,5 +101,22 @@ class DiscogsLookupService {
     return Json::decode($response->getBody());
   }
 
-  public function search($query, $type) {}
+  public function getById($id, $type) {
+    $client = new Client(['base_uri' => $this->URI]);
+    $promise = $client->requestAsync(
+      'GET',
+      '/'.$this->TYPES[$type].'/'.$id,
+      ['query' => [
+        'per_page' => '5',
+        'key' => $this->KEY,
+        'secret' => $this->SECRET
+        ],
+      ]
+    );
+
+    $response = $promise->wait();
+
+//    var_dump($response);
+    return Json::decode($response->getBody());
+  }
 }

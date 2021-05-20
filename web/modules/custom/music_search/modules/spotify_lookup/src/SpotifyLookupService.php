@@ -39,6 +39,11 @@ class SpotifyLookupService {
   private $secret = 'd39da6dfbbb641948c1f38836aae2430';
   private $token = '';
   private $SPOTIFY_CACHE_LIFETIME = 3600;
+  private $TYPES = [
+    'artist' => 'artists',
+    'release' => 'albums',
+    'song' => 'tracks',
+  ];
 
   /**
    * Constructs a new MusicSearchForm object
@@ -178,13 +183,11 @@ class SpotifyLookupService {
       $type = 'track';
     }
 
-    $val = $this->_spotify_api_get_query('search?q='.urlencode($query).'&type='.urlencode($type));
-
-    return $val;
+    return $this->_spotify_api_get_query('search?q='.urlencode($query).'&type='.urlencode($type));
   }
 
   public function getById($id, $type) {
-    return $this->_spotify_api_get_query('');
+    return $this->_spotify_api_get_query($this->TYPES[$type].'/'.$id);
   }
 }
 
