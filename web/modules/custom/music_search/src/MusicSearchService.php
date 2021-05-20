@@ -5,6 +5,7 @@ namespace Drupal\music_search;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\discogs_lookup\DiscogsLookupService;
+use Drupal\spotify_lookup\SpotifyLookupService;
 //use Drupal\music_search\Form\MusicSearchForm;
 
 /**
@@ -15,38 +16,38 @@ class MusicSearchService {
   use StringTranslationTrait;
 
   /**
-   * @var \Drupal\Core\Config\ConfigFactoryInterface
-   */
-  protected $configFactory;
-
-  /**
    * @var DiscogsLookupService;
    */
   protected $discogsService;
 
-//  /**
-//   * @var \Drupal\music_search\Form\MusicSearchForm
-//   */
-//  protected $musicSearchForm;
+  /**
+   * @var SpotifyLookupService;
+   */
+  protected $spotifyService;
 
-  public function __construct(ConfigFactoryInterface $configFactory,
-                              DiscogsLookupService $discogsService/*,
-                              MusicSearchForm $musicSearchForm*/) {
-    $this->configFactory = $configFactory;
+  /**
+   * MusicSearchService constructor.
+   * @param DiscogsLookupService $discogsService
+   * @param SpotifyLookupService $spotifyService
+   */
+  public function __construct(DiscogsLookupService $discogsService,
+                              SpotifyLookupService $spotifyService) {
     $this->discogsService = $discogsService;
+    $this->spotifyService = $spotifyService;
   }
 
-  public function getSpotify() {
-    $config = $this->configFactory->get('music_world.config');
-    $music_search_config = $config->get('music_search');
-    if ($music_search_config && $music_search_config !== '') {
-      return $music_search_config;
-    }
-
-    return $this->t('I know nothing...');
-//    return $this->musicSearchForm;
+  /**
+   * Calls Spotify API service
+   * @return array
+   */
+  public function getSpotify($query, $type = '') {
+    return $this->spotifyService->lookup($query, $type);
   }
 
+  /**
+   * Calls Discogs API service
+   * @return array
+   */
   public function getDiscogs($query, $type = '') {
     return $this->discogsService->lookup($query, $type);
   }
