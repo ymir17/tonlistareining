@@ -172,7 +172,12 @@ class SpotifyLookupService {
   public function lookup($query, $type = '') {
     if ($type === '') {
       $type = 'artist,album,track';
+    } elseif ($type === 'release') {
+      $type = 'album';
+    } elseif ($type === 'song') {
+      $type = 'track';
     }
+
     $val = $this->_spotify_api_get_query('search?q='.urlencode($query).'&type='.urlencode($type));
 
     return $val;
