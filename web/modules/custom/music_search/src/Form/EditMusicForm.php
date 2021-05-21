@@ -99,6 +99,103 @@ class EditMusicForm extends FormBase {
   public function buildForm(array $form, FormStateInterface $form_state) {
     $tempstore = $this->tempStoreFactory->get('music_search');
     $params = $tempstore->get('params');
+    $ids = $params['ids'];
+    $type = $params['type'];
+
+    $results = [];
+    foreach($ids as $id) {
+      if (ctype_digit($id)) {  // If True then it's Discogs, else Spotify
+        $results[$id] = $this->discogsService->getById($id, $type);
+      } else {
+        $results[$id] = $this->spotifyService->getById($id, $type);
+      }
+    }
+    $tempstore->set('results', $results);
+
+    $header = [
+      'title' => $this->t('Title'),
+      'artist' => $this->t('Artist'),
+      'images' => $this->t('Images'),
+      'label' => $this->t('Label'),
+      'release_date' => $this->t('Release Date'),
+      'genre' => $this->t('Genre'),
+    ];
+
+    $form['select'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Select which table below you want to import'),
+      '#options' => [
+        's' => $this->t('Spotify'),
+        'd' => $this->t('Discogs')
+      ],
+      '#empty_option' => $this->t('-select-'),
+      '#weight' => -2
+    ];
+    $form['actions'] = [
+      '#type' => 'actions',
+      'submit' => [
+        '#type' => 'submit',
+        '#value' => $this->t('Next')
+      ],
+      '#weight' => -1
+    ];
+
+    $optionsSpot = [];
+    $optionsDisc = [];
+    foreach ($results as $id => $row) {
+      if (ctype_digit($id)) {
+        $optionsDisc[$id] = [
+          'title' => $row['title'],
+          'artist' => $row['artists'][0]['name'],
+          'images' => [
+            'data' => [
+              '#markup' => '<img src="'.$row['images'][0]['resource_url'].'" width="100" />'
+            ]
+          ],
+          'label' => $row['labels'][0]['name'],
+          'release_date' => $row['released'],
+          'genre' => implode(', ', $row['genres'])
+        ];
+      } else {
+        $optionsSpot[$id] = [
+          'title' => $row['name'],
+          'artist' => $row['artists'][0]['name'],
+          'images' => [
+            'data' => [
+              '#markup' => '<img src="'.$row['images'][0]['url'].'" width="100"/>'
+            ]
+          ],
+          'label' => $row['label'],
+          'release_date' => $row['release_date'],
+          'genre' => implode(', ', $row['genres'])
+        ];
+      }
+    }
+
+    $form['tableDisc'] = [
+      '#type' => 'table',
+      '#caption' => [
+        '#markup' => '<h2><strong>'.$this->t('Discogs').'</strong></h2>'
+      ],
+      '#header' => $header,
+      '#rows' => $optionsDisc
+
+    ];
+    $form['tableSpot'] = [
+      '#type' => 'table',
+      '#caption' => [
+        '#markup' => '<h2><strong>'.$this->t('Spotify').'</strong></h2>'
+      ],
+      '#header' => $header,
+      '#rows' => $optionsSpot
+    ];
+
+    return $form;
+  }
+
+  public function buildForm_old(array $form, FormStateInterface $form_state) {
+    $tempstore = $this->tempStoreFactory->get('music_search');
+    $params = $tempstore->get('params');
 //    $matches = $tempstore->get('matches');
     $query = $params['query'];
 //    $discogsIDs = $params['discogsIDs'];
@@ -117,8 +214,8 @@ class EditMusicForm extends FormBase {
 
     $header = [
       'empty' => '',
-      'spotify' => $this->t('Spotify'),
       'discogs' => $this->t('Discogs'),
+      'spotify' => $this->t('Spotify'),
       'select' => $this->t('Select')
     ];
 
@@ -137,7 +234,8 @@ class EditMusicForm extends FormBase {
       '#options' => [
         'spotify' => 'Spotify',
         'discogs' => 'Discogs'
-      ]
+      ],
+      '#default_value' => $this->t('Select')
     ];
     $form['table'] = [
       '#type' => 'table',
@@ -149,30 +247,38 @@ class EditMusicForm extends FormBase {
     ];
     $rows = [
       [
-        'empty' => ['data' => $leftmostCol[0]],
+        'empty' => [
+          'data' => $leftmostCol[0]
+        ],
       ],
       [
-        'empty' => ['data' => $leftmostCol[1]],
+        'empty' => [
+          'data' => $leftmostCol[1]
+        ],
       ],
       [
-        'empty' => ['data' => $leftmostCol[2]],
+        'empty' => [
+          'data' => $leftmostCol[2]
+        ],
       ],
       [
-        'empty' => ['data' => $leftmostCol[3]],
+        'empty' => [
+          'data' => $leftmostCol[3]
+        ],
       ],
       [
-        'empty' => ['data' => $leftmostCol[4]],
+        'empty' => [
+          'data' => $leftmostCol[4]
+        ],
       ],
       [
-        'empty' => ['data' => $leftmostCol[5]],
+        'empty' => [
+          'data' => $leftmostCol[5]
+        ],
       ]
     ];
     //  ctype_digit($id) === True ? Discogs : Spotify
-    $c = 0;
     foreach ($results as $id => $row) {
-//      for ($i=0; $i<6; $i++) {
-//
-//      }
       if (ctype_digit($id)) {
         $rows[0]['discogs'] = $row['title'];
         $rows[1]['discogs'] = $row['artists'][0]['name'];
@@ -190,7 +296,6 @@ class EditMusicForm extends FormBase {
         $rows[4]['spotify'] = $row['release_date'];
         $rows[5]['spotify'] = implode(', ', $row['genres']);
       }
-
     }
     for ($i=0; $i<6; $i++) {
       $rows[$i]['select'] = ['data' => $select];
@@ -213,6 +318,10 @@ class EditMusicForm extends FormBase {
    * @inheritDoc
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
+    $values = $form_state->getValues();
+    if (strlen($values['select']) <= 0) {
+      $form_state->setErrorByName('select', $this->t('You must select a table to continue'));
+    }
     parent::validateForm($form, $form_state);
   }
 
@@ -220,6 +329,18 @@ class EditMusicForm extends FormBase {
    * @inheritDoc
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    // TODO: Implement submitForm() method.
+    $selected = $form_state->getValues()['select'];
+    $tempstore = $this->tempStoreFactory->get('music_search');
+    $tables = $tempstore->get('results');
+
+    $result = [];
+    foreach ($tables as $id => $table) {
+      if (ctype_digit($id) && $selected == 'd') {
+        $result = $table;
+      } elseif (!ctype_digit($id) && $selected == 's') {
+        $result = $table;
+      }
+    }
+    $breakpoint=1;
   }
 }
