@@ -7,6 +7,8 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\TempStore\PrivateTempStoreFactory;
+use Drupal\node\Entity\Node;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\music_search\MusicSearchService;
 use Drupal\spotify_lookup\SpotifyLookupService;
 use Drupal\discogs_lookup\DiscogsLookupService;
@@ -153,7 +155,7 @@ class EditMusicForm extends FormBase {
             ]
           ],
           'label' => $row['labels'][0]['name'],
-          'release_date' => $row['released'],
+          'release_date' => array_key_exists('released', $row) ? $row['released'] : '',
           'genre' => implode(', ', $row['genres'])
         ];
       } else {
@@ -326,12 +328,22 @@ class EditMusicForm extends FormBase {
   }
 
   /**
+   * Extracts the filename from a given URI
+   */
+  private function getBasenameFromURI($uri) {
+    return ltrim(strrchr($uri, '/'), '/');
+  }
+
+  /**
    * @inheritDoc
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $selected = $form_state->getValues()['select'];
     $tempstore = $this->tempStoreFactory->get('music_search');
     $tables = $tempstore->get('results');
+    $type = $tempstore->get('params')['type'];
+
+    $entity = \Drupal::entityTypeManager()->getStorage('node');
 
     $result = [];
     foreach ($tables as $id => $table) {
@@ -341,6 +353,107 @@ class EditMusicForm extends FormBase {
         $result = $table;
       }
     }
-    $breakpoint=1;
+
+    $breakpoint = 1;
+    $node = [];
+    if (ctype_digit($result['id'])) {  // Discogs
+      switch ($type) {
+        case 'artist':
+          $node = [];
+          break;
+        case 'release':
+          $imageId = $this->service->_save_file(
+            $result['thumb'],
+            'album_images',
+            'image',
+            $result['title'],
+            $this->getBasenameFromURI($result['thumb']),
+          );
+          $songs = [];
+          foreach ($result['tracklist'] as $track) {
+            $song = $entity
+              ->create([
+                'type' => 'song',
+                'title' => $track['title'],
+                'field_duration' => $track['duration'],
+                'field_spotify_id' => 'N/A'
+              ]);
+            $song->save();
+            $songs[] = $song->id();
+          }
+          $artist = $entity->create([
+            'type' => 'musician',
+            'title' => $result['artists'][0]['name'],
+            'field_musician_name' => $result['artists'][0]['name'],
+            'field_musician_homepage' => $result['artists'][0]['resource_url'],
+          ]);
+          $artist->save();
+          $artists[] = $artist->id();
+          $node = $entity->create([
+            'type' => 'record',
+            'title' => $result['title'],
+//            'field_all_musicians' => $result['artists'][0]['name'],
+            'field_all_publishers' => $result['labels'][0]['name'],
+            'field_release_date' => array_key_exists('released', $result) ? date($result['released']) : '',
+            'field_media_img' => $imageId,
+            'field_all_songs' => $songs,
+            'field_all_musicians' => $artists
+          ]);
+          break;
+        case 'song':
+          $node = [];
+          break;
+      }
+    } else {  // Spotify
+      switch ($type) {
+        case 'artist':
+          $node = [];
+          break;
+        case 'release':
+          $imageId = $this->service->_save_file(
+            $result['images'][0]['url'],
+            'album_images',
+            'image',
+            $result['name'],
+            $this->getBasenameFromURI($result['images'][0]['url']),
+          );
+          $songs = [];
+          foreach ($result['tracks']['items'] as $track) {
+              $song = $entity->create([
+                'type' => 'song',
+                'title' => $track['name'],
+                'field_duration' => $track['duration_ms'],
+                'field_spotify_id' => $track['id']
+              ]);
+              $song->save();
+              $songs[$track['track_number']] = $song->id();
+          }
+          $artist = $entity->create([
+            'type' => 'musician',
+            'title' => $result['artists'][0]['name'],
+            'field_musician_name' => $result['artists'][0]['name'],
+            'field_musician_homepage' => $result['artists'][0]['external_urls']['spotify'],
+          ]);
+          $artist->save();
+          $artists[] = $artist->id();
+          $node = $entity->create([
+            'type' => 'record',
+            'title' => $result['name'],
+//            'field_all_musicians' => $result['artists'][0]['name'],
+            'field_all_publishers' => $result['label'],
+            'field_release_date' => date($result['release_date']),
+            'field_media_img' => $imageId,
+            'field_all_songs' => $songs,
+            'field_all_musicians' => $artists
+          ]);
+          break;
+        case 'song':
+          $node = [];
+          break;
+      }
+    }
+    $node->save();
+    $url = $node->toUrl();
+    $form_state->setRedirect($url->getRouteName(), ['node' => $url->getRouteParameters()['node']]);
   }
 }

@@ -51,6 +51,9 @@ music_search.edit:
   requirements:
     _role: 'administrator+writer+editor'
 
+music_search.album_redirect:
+  path: '/albums/{id}'
+
 #music_search.music_form:
 #  path: '/admin/config/music_search'
 #  defaults:
