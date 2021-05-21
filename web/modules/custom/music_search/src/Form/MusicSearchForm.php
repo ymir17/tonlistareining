@@ -96,7 +96,7 @@ class MusicSearchForm extends FormBase {
       '#type' => 'actions',
       'submit' => [
         '#type' => 'submit',
-        '#value' => $this->t('Next')
+        '#value' => $this->t('Search')
       ]
     ];
 
